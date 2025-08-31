@@ -1,5 +1,19 @@
 ## running app under appuser account
 
+### TLDR
+
+build using appgroup gid=1000 and appuser uid=10000
+
+```
+docker build --build-arg APP_UID=10000 --build-arg APP_GID=1000 .
+```
+
+run using host user uid=2222 and group gid=1111
+
+```
+docker run --env HOST_UID=2222 --env HOST_GID=1111
+```
+
 ### how-to
 
 #### at build stage (Dockerfile)
