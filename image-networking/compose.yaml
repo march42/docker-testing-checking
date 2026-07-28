@@ -1,0 +1,32 @@
+name: networking
+
+services:
+  networking:
+    container_name: networking
+    image: marchefter/networking:latest
+    restart: unless-stopped
+    volumes:
+      # sync container timezone to host
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      # sync OpenSSL CA certificates
+      - /etc/ssl/certs/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt:ro
+    network_mode: "bridge"
+    ports:
+      - "8080:80"
+
+  iperf3:
+    container_name: iperf3
+    image: marchefter/networking:latest
+    environment:
+      DOCKER_COMMAND: "/usr/bin/iperf3 --server"
+    restart: unless-stopped
+    volumes:
+      # sync container timezone to host
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/timezone:/etc/timezone:ro
+      # sync OpenSSL CA certificates
+      - /etc/ssl/certs/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt:ro
+    network_mode: "bridge"
+    ports:
+      - "5201:5201"
