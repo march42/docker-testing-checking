@@ -1,16 +1,44 @@
-FROM alpine:3.22
+# base alpine linux version
+ARG ALPINE_VERSION=3.24
+FROM alpine:${ALPINE_VERSION}
 
-ENV VERSION=1.0.0
+ARG IMG_VERSION="20260820-appuser"
+ENV IMG_VERSION=${IMG_VERSION}
+ARG IMG_DEBUG="true"
+ENV IMG_DEBUG=${IMG_DEBUG}
 LABEL maintainer="Marc Hefter <marchefter@march42.net>" \
     description="testing appuser for docker containers" \
-    version="${VERSION}"
+    version="${IMG_VERSION}"
 
 # APP_UID/APP_GID will set the appuser/appgroup at build time (Dockerfile)
-ARG APP_UID=42013
-ARG APP_GID=42007
+ARG APP_UID=10000
+ARG APP_GID=10000
 # HOST_UID/HOST_GID will set the appuser/appgroup at run time (entrypoint.sh)
 ENV HOST_UID=${APP_UID}
 ENV HOST_GID=${APP_GID}
+
+# prepare user account and app directory
+RUN set -x && \
+    /sbin/apk --no-cache add \
+        shadow \
+        daemontools-encore \
+        && \
+    /usr/sbin/addgroup --system --gid ${APP_GID} appgroup && \
+    /usr/sbin/adduser --system --uid ${APP_UID} --disabled-password --no-create-home --home /app --shell /sbin/nologin --gecos "appuser/appgroup" -G appgroup appuser && \
+    /usr/bin/install -dD -o appuser -g appgroup -m 0750 /app && \
+    /usr/bin/install -o appuser -g appgroup -m 0444 /dev/null /app/IMG_VERSION && \
+    { \
+        [ -r /etc/os-release ] && source /etc/os-release; \
+        echo "IMG_LINUX=${ID}:${VERSION_ID}"; \
+        echo "IMG_VERSION=${IMG_VERSION}"; \
+        echo "IMG_DEBUG=${IMG_DEBUG}"; \
+        echo "IMG_DATE=$(date -uIminutes)"; \
+        echo "IMG_BUILD=$(uname -a)"; \
+    } > "/app/IMG_VERSION"
+
+#USER appuser:appgroup
+WORKDIR /app
+VOLUME ["/app/config", "/app/data", "/app/log"]
 
 #RUN set -x && \
 #    apk --no-cache add --virtual \
@@ -22,28 +50,10 @@ ENV HOST_GID=${APP_GID}
 #        util-linux-dev && \
 #    make -j "$(nproc)" && \
 #    rm -rf /build
-COPY docker-entrypoint.sh /
 
-WORKDIR /app
-VOLUME ["/app/data", "/app/log"]
-
-# prepare user account
-RUN set -x && \
-    /sbin/apk --no-cache add \
-        shadow \
-        daemontools-encore \
-        && \
-    /usr/sbin/addgroup --system --gid ${APP_GID} appgroup && \
-    /usr/sbin/adduser --system --uid ${APP_UID} --disabled-password --no-create-home --home /var/empty --shell /sbin/nologin --gecos "appuser/appgroup" -G appgroup appuser && \
-    /bin/mkdir --mode=0750 --parent /app && \
-    /bin/chown --recursive appuser:appgroup /app && \
-    /bin/chmod -R g-w,o-rwx /app
-
-#USER appuser:appgroup
-
+# load docker-entrypoint.sh to image and ensure file permissions
+COPY --chmod=0755 docker-entrypoint.sh /
 # Set up the entry point script and default command
-#EXPOSE 42080
 ENTRYPOINT ["/docker-entrypoint.sh"]
 CMD ["/bin/sh"]
 # sleep infinity
-
