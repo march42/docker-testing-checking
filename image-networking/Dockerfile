@@ -41,6 +41,11 @@ RUN set -x && \
 WORKDIR /app
 VOLUME ["/app/config", "/app/data", "/app/log"]
 
+# load docker-entrypoint.sh to image and ensure file permissions
+COPY --chmod=0755 docker-entrypoint.sh /
+# Set up the entry point script and default command
+ENTRYPOINT ["/docker-entrypoint.sh"]
+
 #RUN set -x && \
 #    apk --no-cache add --virtual \
 #        build-deps \
@@ -65,15 +70,12 @@ RUN set -x && \
         && \
 	echo -e "software done."
 
-# entrypoint script tries to modify UID/GID if neccessary and use setuid
-COPY --chown=root:root --chmod=0755 ../script/docker-entrypoint.sh /
-ENTRYPOINT ["/docker-entrypoint.sh"]
-#USER appuser:appgroup
-
 # health check (0=success healthy, 1=unhealthy, 2=reserved - don't use this exit code)
-COPY --chown=root:root --chmod=0755 ../script/docker-healthcheck.sh /
+COPY --chmod=0755 docker-healthcheck.sh /
+# set up HEALTHCHECK
 HEALTHCHECK --interval=5m --timeout=3s --start-period=13m --start-interval=30s CMD /docker-healthcheck.sh
 
+# set up default port exposure
 # iperf3 server default tcp/5201
 #EXPOSE 5201/tcp
 #EXPOSE 5201/udp
