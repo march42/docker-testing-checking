@@ -1,0 +1,38 @@
+secrets:
+  ca.crt:
+    file: ./private/ca.crt
+  arachne.crt:
+    file: ./private/arachne.crt
+  arachne.key:
+    file: ./private/arachne.key
+  bia.crt:
+    file: ./private/bia.crt
+  bia.key:
+    file: ./private/bia.key
+
+services:
+  arachne:
+    image: "marchefter/alpine:networking"
+    environment:
+      TLS_CA_FILE: /run/secrets/ca.crt
+      TLS_KEY_FILE: /run/secrets/server.key
+      TLS_CERT_FILE: /run/secrets/server.crt
+    secrets:
+      - ca.crt
+      - source: arachne.crt
+        target: server.crt
+      - source: arachne.key
+        target: server.key
+
+  bia:
+    image: "marchefter/alpine:networking"
+    environment:
+      TLS_CA_FILE: /run/secrets/ca.crt
+      TLS_KEY_FILE: /run/secrets/server.key
+      TLS_CERT_FILE: /run/secrets/server.crt
+    secrets:
+      - ca.crt
+      - source: bia.crt
+        target: server.crt
+      - source: bia.key
+        target: server.key

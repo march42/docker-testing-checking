@@ -3,12 +3,12 @@ name: networking
 services:
   networking:
     container_name: networking
-    image: marchefter/networking:latest
+    image: marchefter/alpine:networking
+    pull_policy: always
     restart: unless-stopped
+    environment:
+      - TZ=${TZ:-Europe/Berlin}
     volumes:
-      # sync container timezone to host
-      - /etc/localtime:/etc/localtime:ro
-      - /etc/timezone:/etc/timezone:ro
       # sync OpenSSL CA certificates
       - /etc/ssl/certs/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt:ro
     network_mode: "bridge"
@@ -17,14 +17,13 @@ services:
 
   iperf3:
     container_name: iperf3
-    image: marchefter/networking:latest
-    environment:
-      DOCKER_COMMAND: "/usr/bin/iperf3 --server"
+    image: marchefter/alpine:networking
+    pull_policy: always
     restart: unless-stopped
+    environment:
+      - TZ=${TZ:-Europe/Berlin}
+      - DOCKER_COMMAND: "/usr/bin/iperf3 --server"
     volumes:
-      # sync container timezone to host
-      - /etc/localtime:/etc/localtime:ro
-      - /etc/timezone:/etc/timezone:ro
       # sync OpenSSL CA certificates
       - /etc/ssl/certs/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt:ro
     network_mode: "bridge"
