@@ -1,0 +1,7 @@
+# ignore private directories
+private/
+# ignore certificates and keys
+*.key
+*.crt
+# ignore stage logfiles (used as flagfiles)
+*.log
