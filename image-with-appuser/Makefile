@@ -6,8 +6,15 @@
 # see https://www.gnu.org/software/make/manual/make.html
 
 ###
-# basic variables
-SHELL	?= /bin/bash
+# include local toolset settings, if any
+-include ../toolset.mk
+# set simple commands as fall-back option
+SHELL	?= /bin/sh
+INSTALL	?= install
+TOUCH	?= touch
+RM		?= rm
+CAT		?= cat
+SED		?= sed
 DOCKER	?= docker
 
 ###
@@ -35,24 +42,24 @@ endif
 
 #	create flag file indicating last run
 %.log:
-	touch $@
+	$(TOUCH) $@
 
 all:	docker-build.log
 
 #	clean		remove objects and targets
 clean:	last-run.log
-	-rm $(objects) $(flagfiles)
+	-$(RM) $(objects) $(flagfiles)
 
 ###
 # prepare script rules
 docker-entrypoint.sh:
-	cat ../script/$@ > $@
-#	sed --in-place --regexp-extended \
+	$(INSTALL) ../script/$@ $@
+#	$(SED) --in-place --regexp-extended \
 #		--expression="s#@@PROJECT@@#image-with-appuser#gi" \
 #		$@
 
 docker-healthcheck.sh:
-	cat ../script/$@ > $@
+	$(INSTALL) ../script/$@ $@
 
 ###
 IMAGE_REPOSITORY	= alpine
@@ -68,11 +75,11 @@ endif
 #	*/docker-build.log
 docker-build.log:	$(objects)
 	@$(DOCKER) build $(DOCKER_BUILD_ARGS) $(DOCKER_BUILD_TAGS) Dockerfile
-	touch $@
+	$(TOUCH) $@
 #
 .PHONY:	docker-push
 docker-push:		docker-push.log
 docker-push.log:	docker-build.log
 	@$(DOCKER) push --all-tags $(IMAGE_REPOSITORY):$(ALPINE_VERSION)-$(IMAGE_TAG)
-	touch $@
+	$(TOUCH) $@
 #

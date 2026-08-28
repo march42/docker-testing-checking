@@ -5,3 +5,5 @@ private/
 *.crt
 # ignore stage logfiles (used as flagfiles)
 *.log
+# ignore local toolset settings
+toolset.mk

@@ -20,11 +20,12 @@ ENV HOST_GID=${APP_GID}
 # prepare user account and app directory
 RUN set -x && \
     /sbin/apk --no-cache add \
-        shadow \
         daemontools-encore \
+        shadow \
+        tini \
         && \
     /usr/sbin/addgroup --system --gid ${APP_GID} appgroup && \
-    /usr/sbin/adduser --system --uid ${APP_UID} --disabled-password --no-create-home --home /app --shell /sbin/nologin --gecos "appuser/appgroup" -G appgroup appuser && \
+    /usr/sbin/adduser --system --uid ${APP_UID} --disabled-password --home /home/appuser --shell /sbin/nologin --gecos "appuser/appgroup" -G appgroup appuser && \
     /usr/bin/install -dD -o appuser -g appgroup -m 0750 /app && \
     /usr/bin/install -o appuser -g appgroup -m 0444 /dev/null /app/IMG_VERSION && \
     { \
@@ -44,7 +45,7 @@ VOLUME ["/app/config", "/app/data", "/app/log"]
 # load docker-entrypoint.sh to image and ensure file permissions
 COPY --chmod=0755 docker-entrypoint.sh /
 # Set up the entry point script and default command
-ENTRYPOINT ["/docker-entrypoint.sh"]
+ENTRYPOINT ["/sbin/tini", "-g", "--", "/docker-entrypoint.sh"]
 
 #RUN set -x && \
 #    apk --no-cache add --virtual \

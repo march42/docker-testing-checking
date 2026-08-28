@@ -6,16 +6,23 @@
 # see https://www.gnu.org/software/make/manual/make.html
 
 ###
-# basic variables
-SHELL	?= /bin/bash
+# include local toolset settings, if any
+-include toolset.mk
+# set simple commands as fall-back option
+SHELL	?= /bin/sh
+INSTALL	?= install
+TOUCH	?= touch
+RM		?= rm
+CAT		?= cat
+SED		?= sed
 DOCKER	?= docker
 
 ###
 # targets variables
-SUBDIRS			= image-with-appuser image-networking
-SUBDIRSCLEAN	= $(addsuffix .clean,$(SUBDIRS))
-flagfiles		=
-objects			=
+SUBDIRS			:= image-with-appuser image-networking
+SUBDIRSCLEAN	:= $(addsuffix .clean,$(SUBDIRS))
+flagfiles		:=
+objects			:=
 
 ###
 # subdirectory rules
@@ -38,10 +45,10 @@ $(SUBDIRS):
 .PHONY:	last-run
 last-run:	last-run.log
 %.log:
-	touch $@
+	$(TOUCH) $@
 
 #	clean		remove objects and targets
 clean:	last-run.log $(SUBDIRSCLEAN)
-	-rm last-run.log $(objects) $(flagfiles)
+	-$(RM) last-run.log $(objects) $(flagfiles)
 
 all:	last-run.log

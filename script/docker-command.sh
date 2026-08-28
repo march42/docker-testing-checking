@@ -1,5 +1,11 @@
 #!/bin/sh
 ### alpine image uses busybox
+###
+#	signal TRAP
+trap "echo -e \"EXITting r=$returnCode\"" EXIT
+trap "echo -e \"caught sigHUP\" ; exit" HUP
+trap "echo -e \"caught sigINT\" ; exit" INT
+trap "echo -e \"caught sigTERM\" ; exit" TERM
 
 # -e    Option errexit    exit immediatly, if a command exits with non-zero status
 #set -e
@@ -7,12 +13,6 @@
 # at first we assume everyting is peachy
 returnCode=0
 
-###
-#	signal TRAP
-trap "echo -e \"EXITting r=$returnCode\"" EXIT
-trap "echo -e \"caught sigHUP\" ; exit" HUP
-trap "echo -e \"caught sigINT\" ; exit" INT
-trap "echo -e \"caught sigTERM\" ; exit" TERM
 
 ###
 #	check for interactive TTY

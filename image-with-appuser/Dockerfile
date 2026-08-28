@@ -20,8 +20,9 @@ ENV HOST_GID=${APP_GID}
 # prepare user account and app directory
 RUN set -x && \
     /sbin/apk --no-cache add \
-        shadow \
         daemontools-encore \
+        shadow \
+        tini \
         && \
     /usr/sbin/addgroup --system --gid ${APP_GID} appgroup && \
     /usr/sbin/adduser --system --uid ${APP_UID} --disabled-password --no-create-home --home /app --shell /sbin/nologin --gecos "appuser/appgroup" -G appgroup appuser && \

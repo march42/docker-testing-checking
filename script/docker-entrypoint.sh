@@ -1,6 +1,13 @@
 #!/bin/sh
 ### alpine image uses busybox
 
+###
+#	signal TRAP
+trap "echo -e \"EXITting err=$?\"" EXIT
+trap "echo -e \"caught sigHUP\" ; exit" HUP
+trap "echo -e \"caught sigINT\" ; exit" INT
+trap "echo -e \"caught sigTERM\" ; exit" TERM
+
 # -e    Option errexit    exit immediatly, if a command exits with non-zero status
 set -e
 
@@ -28,10 +35,11 @@ else
 		# modify additional group membership (this should be unneccessary, groupmod was called with --non-unique)
 		[[ "${HOST_GID}" != "$(/bin/grep -e "^appgroup:" /etc/group | /usr/bin/cut -d ":" -f3)" ]] && /usr/sbin/usermod --groups appgroup appuser || true
 	fi
-	# modify appuser home directory (not for HOME=/app otherwise all permissions on mounted host files would be messed up)
+	# modify appuser home directory
 	APPUSER_HOME=$(/bin/grep -e "^appuser:" /etc/passwd | /usr/bin/cut -d ":" -f6)
-	#/bin/chown --recursive appuser:appgroup ${APPUSER_HOME} 2>/dev/null || true
+	/usr/bin/find ${APPUSER_HOME} -xdev -exec /bin/chown appuser:appgroup {} \;
 	# modify filesystem ownership, otherwise /app will be inaccessible (mode=0750)
+	# do not just chown/chmod /app otherwise all permissions on mounted host files would be messed up
 	# find -xdev only changes ownership on the local image
 	/usr/bin/find /app -xdev -exec /bin/chown appuser:appgroup {} \;
 fi
