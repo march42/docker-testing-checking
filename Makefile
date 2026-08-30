@@ -19,10 +19,12 @@ DOCKER	?= docker
 
 ###
 # targets variables
-SUBDIRS			:= image-with-appuser image-networking
+SUBDIRS			:= 
 SUBDIRSCLEAN	:= $(addsuffix .clean,$(SUBDIRS))
-flagfiles		:=
-objects			:=
+flagfiles		:= image-with-appuser.log image-networking.log
+objects_appuser		:= image-with-appuser/docker-entrypoint.sh image-with-appuser/docker-healthcheck.sh
+objects_networking	:= image-networking/docker-entrypoint.sh image-networking/docker-healthcheck.sh image-networking/docker-command.sh
+objects			:= $(objects_appuser) $(objects_networking)
 
 ###
 # subdirectory rules
@@ -31,24 +33,60 @@ objects			:=
 subdirs: $(SUBDIRS)
 
 $(SUBDIRS):
-	$(MAKE) -C $@
+	$(MAKE) -C $@ -f Makefile
 %.clean: %
 	$(MAKE) -C $< -f Makefile clean
 
 ###
 # .DEFAULT_GOAL	when running whithout arguments
-.DEFAULT_GOAL	:= subdirs
+.DEFAULT_GOAL	:= all
 # .PHONY		marka goals not producing files
 .PHONY: clean
 
-#	last-run	create flag file indicating last run
-.PHONY:	last-run
-last-run:	last-run.log
-%.log:
-	$(TOUCH) $@
-
 #	clean		remove objects and targets
-clean:	last-run.log $(SUBDIRSCLEAN)
-	-$(RM) last-run.log $(objects) $(flagfiles)
+.PHONY:	clean prepare all
+clean:	$(SUBDIRSCLEAN)
+	-$(RM) $(objects) $(flagfiles)
 
-all:	last-run.log
+prepare:	$(objects)
+
+all:	$(objects) $(flagfiles)
+
+###
+# image settings
+IMAGE_REPOSITORY	?= alpine
+ALPINE_VERSION		?= latest
+DOCKER_BUILDARGS	+= --build-arg ALPINE_VERSION=$(ALPINE_VERSION)
+ifdef IMAGE_DEBUG
+ifeq ("$(IMAGE_DEBUG)","false")
+$(info disabling IMAGE_DEBUG =$(IMAGE_DEBUG))
+DOCKER_BUILDARGS	+= --build-arg IMAGE_DEBUG=
+else
+$(info setting IMAGE_DEBUG =$(IMAGE_DEBUG))
+DOCKER_BUILDARGS	+= --build-arg IMAGE_DEBUG=$(IMAGE_DEBUG)
+endif
+endif
+ifeq ("$(ALPINE_VERSION)","latest")
+$(info using latest ALPINE_VERSION)
+IMAGE_APPUSER		:= $(IMAGE_REPOSITORY):appuser
+IMAGE_NETWORKING	:= $(IMAGE_REPOSITORY):networking
+else
+$(info using ALPINE_VERSION ==${ALPINE_VERSION})
+IMAGE_APPUSER		:= $(IMAGE_REPOSITORY):$(ALPINE_VERSION)-appuser
+IMAGE_NETWORKING	:= $(IMAGE_REPOSITORY):$(ALPINE_VERSION)-networking
+endif
+BUILDARGS_APPUSER		:= ${DOCKER_BUILDARGS} --tag $(IMAGE_APPUSER)
+BUILDARGS_NETWORKING	:= ${DOCKER_BUILDARGS} --tag $(IMAGE_NETWORKING)
+
+# image scripts
+%.sh:
+	$(INSTALL) script/$(@F) $@
+
+# image build
+image-with-appuser.log:	image-with-appuser/Dockerfile $(objects_appuser)
+	cd image-with-appuser && $(DOCKER) build $(BUILDARGS_APPUSER) Dockerfile
+	$(DOCKER) inspect $(IMAGE_APPUSER) || $(CAT) /dev/null > $@ 
+
+image-networking.log:	image-networking/Dockerfile $(objects_networking)
+	cd image-networking && $(DOCKER) build $(BUILDARGS_APPUSER) Dockerfile
+	$(DOCKER) inspect $(IMAGE_NETWORKING) || $(CAT) /dev/null > $@ 

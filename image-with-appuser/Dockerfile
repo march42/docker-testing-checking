@@ -47,6 +47,20 @@ COPY --chmod=0755 docker-entrypoint.sh /
 # Set up the entry point script and default command
 ENTRYPOINT ["/docker-entrypoint.sh"]
 
+# prepare software packages
+#RUN set -x && \
+#    /sbin/apk --no-cache add \
+#        ca-certificates \
+#        certbot \
+#    && /usr/sbin/update-ca-certificates \
+#    && /usr/bin/certbot \
+#    && echo -e "software done."
+
+# TLS certificate files
+ENV TLS_CA_FILE=/etc/ssl/certs/ca-certificates.crt
+ENV TLS_KEY_FILE=
+ENV TLS_CERT_FILE=
+
 #RUN set -x && \
 #    apk --no-cache add --virtual \
 #        build-deps \

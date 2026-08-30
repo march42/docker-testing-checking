@@ -7,3 +7,8 @@ private/
 *.log
 # ignore local toolset settings
 toolset.mk
+# image script (from preparing)
+#image-*/docker-*.sh
+image-*/docker-entrypoint.sh
+image-*/docker-healthcheck.sh
+image-*/docker-command.sh
