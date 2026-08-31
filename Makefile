@@ -66,6 +66,12 @@ $(info setting IMAGE_DEBUG =$(IMAGE_DEBUG))
 DOCKER_BUILDARGS	+= --build-arg IMAGE_DEBUG=$(IMAGE_DEBUG)
 endif
 endif
+ifdef IMAGE_PUSH
+ifneq ("$(IMAGE_PUSH)","false")
+$(info enabling IMAGE_PUSH =$(IMAGE_PUSH))
+DOCKER_BUILDARGS	+= --push
+endif
+endif
 ifeq ("$(ALPINE_VERSION)","latest")
 $(info using latest ALPINE_VERSION)
 IMAGE_APPUSER		:= $(IMAGE_REPOSITORY):appuser
@@ -78,15 +84,28 @@ endif
 BUILDARGS_APPUSER		:= ${DOCKER_BUILDARGS} --tag $(IMAGE_APPUSER)
 BUILDARGS_NETWORKING	:= ${DOCKER_BUILDARGS} --tag $(IMAGE_NETWORKING)
 
+# image target short
+.PHONY:	appuser appuser-push
+appuser: image-with-appuser.log
+appuser-push:	image-with-appuser.log
+	$(DOCKER) push $(IMAGE_APPUSER)
+
+.PHONY:	networking networking-push
+networking: image-networking.log
+networking-push:	image-networking.log
+	$(DOCKER) push $(IMAGE_NETWORKING)
+
 # image scripts
 %.sh:
 	$(INSTALL) script/$(@F) $@
 
 # image build
 image-with-appuser.log:	image-with-appuser/Dockerfile $(objects_appuser)
-	cd image-with-appuser && $(DOCKER) build $(BUILDARGS_APPUSER) Dockerfile
-	$(DOCKER) inspect $(IMAGE_APPUSER) || $(CAT) /dev/null > $@ 
+	$(DOCKER) build $(BUILDARGS_APPUSER) image-with-appuser
+	$(DOCKER) inspect $(IMAGE_APPUSER) > $@ \
+	|| $(CAT) /dev/null > $@
 
 image-networking.log:	image-networking/Dockerfile $(objects_networking)
-	cd image-networking && $(DOCKER) build $(BUILDARGS_APPUSER) Dockerfile
-	$(DOCKER) inspect $(IMAGE_NETWORKING) || $(CAT) /dev/null > $@ 
+	$(DOCKER) build $(BUILDARGS_NETWORKING) image-networking
+	$(DOCKER) inspect $(IMAGE_NETWORKING) > $@ \
+	|| $(CAT) /dev/null > $@

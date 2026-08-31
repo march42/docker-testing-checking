@@ -1,5 +1,9 @@
 name: networking
 
+secrets:
+  ca.crt:
+    file: /etc/ssl/certs/ca-certificates.crt
+
 services:
   networking:
     container_name: networking
@@ -11,6 +15,8 @@ services:
     volumes:
       # sync OpenSSL CA certificates
       - /etc/ssl/certs/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt:ro
+    secrets:
+      - ca.crt
     network_mode: "bridge"
     ports:
       - "8080:80"
@@ -26,6 +32,8 @@ services:
     volumes:
       # sync OpenSSL CA certificates
       - /etc/ssl/certs/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt:ro
+    secrets:
+      - ca.crt
     network_mode: "bridge"
     ports:
       - "5201:5201"

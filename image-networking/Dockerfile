@@ -2,9 +2,9 @@
 ARG ALPINE_VERSION=latest
 FROM alpine:${ALPINE_VERSION}
 
-ARG IMG_VERSION="20260820-networking"
+ARG IMG_VERSION="20260831-networking"
 ENV IMG_VERSION=${IMG_VERSION}
-ARG IMG_DEBUG="true"
+ARG IMG_DEBUG
 ENV IMG_DEBUG=${IMG_DEBUG}
 LABEL maintainer="Marc Hefter <marchefter@march42.net>" \
     description="network testing docker container" \
@@ -77,8 +77,12 @@ ENV TLS_CERT_FILE=
 
 # health check (0=success healthy, 1=unhealthy, 2=reserved - don't use this exit code)
 COPY --chmod=0755 docker-healthcheck.sh /
+# environment settings
+ENV HEALTH_NSLOOKUP=
+ENV HEALTH_PING=$(hostname)
+ENV HEALTH_CURL=
 # set up HEALTHCHECK
-HEALTHCHECK --interval=5m --timeout=3s --start-period=13m --start-interval=30s CMD /docker-healthcheck.sh
+HEALTHCHECK --interval=5m --timeout=13s --start-period=13m --start-interval=30s CMD /docker-healthcheck.sh
 
 # set up default port exposure
 # iperf3 server default tcp/5201

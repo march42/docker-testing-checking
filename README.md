@@ -2,6 +2,19 @@
 
 Here i check and test some handling of docker.
 
+## Building with GNU Make
+
+`make` builds the images
+
+Make can be steered with following options
+
+| Make Variable | Description |
+|:--------------|-------------|
+| `ALPINE_VERSION=3.24` | Build with specific Version of Alpine Linux base image |
+| `IMAGE_REPOSITORY=username/alpine` | specify your own repository (so you can easier push) |
+| `IMAGE_DEBUG=true` | set IMG_DEBUG environment variable |
+| `IMAGE_PUSH=true` | push image to docker registry on build |
+
 ## image with appuser and uid/gid change support
 
 **Running an image app with specific UID/GID**
@@ -16,6 +29,8 @@ and modify uid/gid with ENTRYPOINT script.
 
 **Running an image with `--user=nonexistent` fails**
 because user doesn't exist on image.
+
+**apperently newer Docker runs container under non-existent user account**
 
 ## scripts
 

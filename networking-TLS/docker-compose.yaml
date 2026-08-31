@@ -14,6 +14,7 @@ services:
   arachne:
     image: "marchefter/alpine:networking"
     environment:
+      TZ: ${TZ:-Europe/Berlin}
       TLS_CA_FILE: /run/secrets/ca.crt
       TLS_KEY_FILE: /run/secrets/server.key
       TLS_CERT_FILE: /run/secrets/server.crt
@@ -27,6 +28,7 @@ services:
   bia:
     image: "marchefter/alpine:networking"
     environment:
+      TZ: ${TZ:-Europe/Berlin}
       TLS_CA_FILE: /run/secrets/ca.crt
       TLS_KEY_FILE: /run/secrets/server.key
       TLS_CERT_FILE: /run/secrets/server.crt

@@ -7,12 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [ToDo]
 
+- general TLS script
 - some documentation in [doc](./doc/) directory
-- add simple init functionality
 
-## [Unreleased](https://github.com/march42/docker-testing-checking/compare/v0.1.0...HEAD)
+## [Unreleased](https://github.com/march42/docker-testing-checking/compare/v0.2.0...HEAD)
 
 [HEAD](https://github.com/march42/docker-testing-checking/tree/HEAD)
+
+## [v0.2.0](https://github.com/march42/docker-testing-checking/tree/v0.2.0)
+
+### Added
+
+- GNU Makefile for building
+- package tini as default init process
+- `ENV HEALTH_NSLOOKUP` to specify nslookup query for healthcheck
+- `ENV HEALTH_PING` to specify ping target for healthcheck
+- `ENV HEALTH_CURL` to specify curl URI for healthcheck
+
+### Changed
+
+- set `IMG_VERSION=20260831`
+- configurable `docker-healtcheck.sh` with environment variables
+- shortened healtcheck `start-interval` so container will earlier be healthy
+- added simple signal trap to `docker-entrypoint.sh`
+- moved `docker-entrypoint.sh` to script/ directory
+- moved `docker-healthcheck.sh` to script/ directory
+- moved `docker-command.sh` to script/ directory
 
 ## [v0.1.0](https://github.com/march42/docker-testing-checking/tree/v0.1.0)
 
