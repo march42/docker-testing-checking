@@ -3,3 +3,6 @@ docker build --build-arg ALPINE_VERSION=latest --tag marchefter/alpine:networkin
 
 docker build --build-arg ALPINE_VERSION=3.24 --tag marchefter/alpine:3.24-appuser --push image-with-appuser
 docker build --build-arg ALPINE_VERSION=latest --tag marchefter/alpine:appuser --push image-with-appuser
+
+docker build --tag marchefter/postgres:alpine --push postgres
+docker build --tag marchefter/redis:alpine --push redis

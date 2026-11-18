@@ -3,7 +3,7 @@
 
 ###
 #	signal TRAP
-trap "echo -e \"EXITting err=$?\"" EXIT
+trap "echo -e \"EXITting\"" EXIT
 trap "echo -e \"caught sigHUP\" ; exit" HUP
 trap "echo -e \"caught sigINT\" ; exit" INT
 trap "echo -e \"caught sigTERM\" ; exit" TERM
@@ -19,7 +19,7 @@ APP_GID=$(/usr/bin/id -g appuser)
 returnCode=0
 
 # check appuser/appgroup
-if [[ "${HOST_GID}" != "${APP_GID}" || "${HOST_UID}" != "${APP_UID}" ]]; then
+if [[ "${HOST_GID:=${PGID}}" != "${APP_GID}" || "${HOST_UID:=${PUID}}" != "${APP_UID}" ]]; then
 	[ -n "${IMG_DEBUG}" ] && echo -e "appuser is: $(/usr/bin/id appuser)"
 	returnCode=1
 fi

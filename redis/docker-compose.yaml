@@ -1,0 +1,24 @@
+
+  redis:
+    restart: unless-stopped
+    image: redis:alpine  # 7-alpine
+    container_name: fediverse-redis
+    networks:
+      - internal_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+    volumes:
+      - ./redis_data:/data
+      - ./redis_config:/etc/redis
+      - ./redis_home:/home/redis
+    entrypoint: /home/redis/redis-entrypoint.sh
+    environment:
+      - TZ="Europe/Berlin"
+      # host system settings
+      #- user="${HOST_UID}:${HOST_GID}"
+      - PUID=110 # id redis
+      - PGID=115 # id redis
+      #- SKIP_FIX_PERMS="yes"
+      #- IMG_DEBUG="yes"
+      # /etc/redis/redis.conf --requirepass your_password_here
+      - REDIS_ARGS=""
