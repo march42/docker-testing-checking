@@ -14,6 +14,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 [HEAD](https://github.com/march42/docker-testing-checking/tree/HEAD)
 
+### Added
+
+- PostreSQL image with appuser PUID/PGID setting and health check
+- redis image with appuser PUID/PGID setting and health check
+
 ## [v0.2.0](https://github.com/march42/docker-testing-checking/tree/v0.2.0)
 
 ### Added
