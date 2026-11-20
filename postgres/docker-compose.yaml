@@ -15,7 +15,7 @@ secrets:
 services:
   db:
     restart: unless-stopped
-    image: postgres:alpine  # 14-alpine
+    image: marchefter/postgres:18-alpine
     shm_size: 256mb
     networks:
       - internal_network
@@ -28,6 +28,8 @@ services:
       - ./postgresql:/var/lib/postgresql
       - ./private/pg_healthcheck.sh:/usr/local/bin/pg_healthcheck.sh:ro
     environment:
+      #- HOST_UID=
+      #- HOST_GID=
       #- POSTGRES_HOST_AUTH_METHOD=trust
       - POSTGRES_DB=dont_use_HOST_AUTH
       - POSTGRES_USER_FILE=/run/secrets/POSTGRES_USER

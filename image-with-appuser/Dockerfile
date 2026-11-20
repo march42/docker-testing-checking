@@ -13,9 +13,9 @@ LABEL maintainer="Marc Hefter <marchefter@march42.net>" \
 # APP_UID/APP_GID will set the appuser/appgroup at build time (Dockerfile)
 ARG APP_UID=10000
 ARG APP_GID=10000
-# HOST_UID/HOST_GID will set the appuser/appgroup at run time (entrypoint.sh)
-ENV HOST_UID=${APP_UID}
-ENV HOST_GID=${APP_GID}
+# APP_USER/APP_GROUP set to the user and group name at build time (Dockerfile)
+ENV APP_USER=appuser
+ENV APP_GROUP=appgroup
 
 # prepare user account and app directory
 RUN set -x && \
@@ -24,10 +24,10 @@ RUN set -x && \
         shadow \
         tini \
         && \
-    /usr/sbin/addgroup --system --gid ${APP_GID} appgroup && \
-    /usr/sbin/adduser --system --uid ${APP_UID} --disabled-password --no-create-home --home /app --shell /sbin/nologin --gecos "appuser/appgroup" -G appgroup appuser && \
-    /usr/bin/install -dD -o appuser -g appgroup -m 0750 /app && \
-    /usr/bin/install -o appuser -g appgroup -m 0444 /dev/null /app/IMG_VERSION && \
+    /usr/sbin/addgroup --system --gid ${APP_GID} ${APP_GROUP} && \
+    /usr/sbin/adduser --system --uid ${APP_UID} --disabled-password --no-create-home --home /app --shell /sbin/nologin --gecos "appuser/appgroup" -G ${APP_GROUP} ${APP_USER} && \
+    /usr/bin/install -dD -o ${APP_USER} -g ${APP_GROUP} -m 0750 /app && \
+    /usr/bin/install -o ${APP_USER} -g ${APP_GROUP} -m 0444 /dev/null /app/IMG_VERSION && \
     { \
         [ -r /etc/os-release ] && source /etc/os-release; \
         echo "IMG_LINUX=${ID}:${VERSION_ID}"; \
@@ -38,14 +38,9 @@ RUN set -x && \
     } > "/app/IMG_VERSION" && \
 	echo -e "appuser/appgroup done."
 
-#USER appuser:appgroup
+#USER ${APP_USER}:${APP_GROUP}
 WORKDIR /app
-VOLUME ["/app/config", "/app/data", "/app/log"]
-
-# load docker-entrypoint.sh to image and ensure file permissions
-COPY --chmod=0755 docker-entrypoint.sh /
-# Set up the entry point script and default command
-ENTRYPOINT ["/sbin/tini", "-g", "--", "/docker-entrypoint.sh"]
+#VOLUME ["/app/config", "/app/data", "/app/log"]  # naming VOLUME will always create one
 
 # prepare software packages
 #RUN set -x && \
@@ -73,14 +68,17 @@ ENV TLS_CERT_FILE=
 #    rm -rf /build && \
 #    echo -e "build preparation done."
 
-# health check (0=success healthy, 1=unhealthy, 2=reserved - don't use this exit code)
-COPY --chmod=0755 docker-healthcheck.sh /
-# environment settings
+# load script files to image, ensure file permissions, ensure LF line endings
+COPY --chmod=0755 docker-entrypoint.sh docker-healthcheck.sh /
+RUN dos2unix /docker-entrypoint.sh /docker-healthcheck.sh
+# Set up the entry point script and default command
+ENTRYPOINT ["/sbin/tini", "-g", "--", "/docker-entrypoint.sh"]
+# set up HEALTHCHECK, returning (0=success healthy, 1=unhealthy, 2=reserved - don't use this exit code)
+HEALTHCHECK --interval=5m --timeout=13s --start-period=13m --start-interval=30s CMD /docker-healthcheck.sh
+# health check environment settings
 ENV HEALTH_NSLOOKUP=
 ENV HEALTH_PING=$(hostname)
 ENV HEALTH_CURL=
-# set up HEALTHCHECK
-HEALTHCHECK --interval=5m --timeout=13s --start-period=13m --start-interval=30s CMD /docker-healthcheck.sh
 
 # default command to run
 CMD ["/bin/sh"]

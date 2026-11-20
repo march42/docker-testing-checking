@@ -12,17 +12,17 @@ trap "echo -e \"caught sigTERM\" ; exit" TERM
 # -e    Option errexit    exit immediatly, if a command exits with non-zero status
 set -e
 
-# get current uid/gid (id -g give user's primary group gid)
-APP_USER=redis
+# get current uid/gid (id -g appuser give primary group gid, which ist appgroup)
+#APP_USER=redis  # set in Dockerfile at build time
+#APP_GROUP=redis  # set in Dockerfile at build time
 APP_UID=$(/usr/bin/id -u ${APP_USER})
-APP_GROUP=redis
-APP_GID=$(/usr/bin/id -g ${APP_GROUP})
+APP_GID=$(/usr/bin/id -g ${APP_USER})
 
 # prepare app user and group and permissions
 if [ "$(/usr/bin/id -u)" != '0' ]; then
 	# we are already unprivileged user
 	[ -n "${IMG_DEBUG}" ] && echo -e "running as: $(/usr/bin/id)"
-elif [[ -n "${HOST_UID:=${PUID}}" ]] || [[ -n "${HOST_GID:=${PGID}}" ]]; then
+elif [[ -n "${HOST_UID:=${PUID}}${HOST_GID:=${PGID}}" ]]; then
 	# we need usermod and groupmod installed
 	if [[ ! -x /usr/sbin/groupmod ]] || [[ ! -x /usr/sbin/usermod ]]; then
 		/sbin/apk --no-cache add shadow || true		# install necessary package
@@ -57,3 +57,4 @@ fi
 
 # calling /usr/local/bin/docker-entrypoint.sh
 /usr/local/bin/docker-entrypoint.sh ${@}
+exit $?

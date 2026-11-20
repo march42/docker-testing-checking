@@ -1,8 +1,20 @@
 # base postgresql
-FROM postgres:alpine
+ARG POSTGRES_VERSION=18-alpine
+FROM postgres:${POSTGRES_VERSION}
 
-LABEL maintainer="Marc Hefter <marchefter@march42.net>" \
-    description="adding appuser to docker containers"
+# for opencontainers annotations see https://specs.opencontainers.org/image-spec/annotations/
+LABEL org.opencontainers.image.authors="Marc Hefter <marchefter@march42.net>" \
+    org.opencontainers.image.title="PostgreSQL" \
+    org.opencontainers.image.version="18-alpine v18.7" \
+    org.opencontainers.image.url="https://www.postgresql.org/" \
+    org.opencontainers.image.documentation="https://www.postgresql.org/docs/" \
+    org.opencontainers.image.source="https://github.com/march42/docker-testing-checking" \
+    org.opencontainers.image.description="adding appuser to docker container" \
+    org.opencontainers.image.licenses="GPL-3.0-or-later OR PostgreSQL"
+
+# APP_USER/APP_GROUP set to the user and group name at build time (Dockerfile)
+ENV APP_USER=postgres
+ENV APP_GROUP=postgres
 
 # prepare user account and app directory
 RUN set -x && \
@@ -13,42 +25,17 @@ RUN set -x && \
         && \
 	echo -e "preparation done."
 
-# load docker-entrypoint.sh to image and ensure file permissions
-COPY --chmod=0755 docker-entrypoint.sh /
-RUN dos2unix /docker-entrypoint.sh
-# Set up the entry point script and default command
-ENTRYPOINT ["/sbin/tini", "-g", "--", "/docker-entrypoint.sh"]
-
-# prepare software packages
-#RUN set -x && \
-#    /sbin/apk --no-cache add \
-#        ca-certificates \
-#        certbot \
-#    && /usr/sbin/update-ca-certificates \
-#    && /usr/bin/certbot \
-#    && echo -e "software done."
-
 # TLS certificate files
 ENV TLS_CA_FILE=/etc/ssl/certs/ca-certificates.crt
 ENV TLS_KEY_FILE=
 ENV TLS_CERT_FILE=
 
-#RUN set -x && \
-#    apk --no-cache add --virtual \
-#        build-deps \
-#        build-base \
-#        cmake \
-#        linux-headers \
-#        openssl-dev \
-#        util-linux-dev && \
-#    make -j "$(nproc)" && \
-#    rm -rf /build && \
-#    echo -e "build preparation done."
-
-# health check (0=success healthy, 1=unhealthy, 2=reserved - don't use this exit code)
-COPY --chmod=0755 docker-healthcheck.sh /
-RUN dos2unix /docker-healthcheck.sh
-# set up HEALTHCHECK
+# load script files to image, ensure file permissions, ensure LF line endings
+COPY --chmod=0755 docker-entrypoint.sh docker-healthcheck.sh /
+RUN dos2unix /docker-entrypoint.sh /docker-healthcheck.sh
+# Set up the entry point script and default command
+ENTRYPOINT ["/sbin/tini", "-g", "--", "/docker-entrypoint.sh"]
+# set up HEALTHCHECK, returning (0=success healthy, 1=unhealthy, 2=reserved - don't use this exit code)
 HEALTHCHECK --interval=5m --timeout=13s --start-period=13m --start-interval=30s CMD /docker-healthcheck.sh
 
 # default volumes
